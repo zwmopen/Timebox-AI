@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timebox - 简化版时间管理</title>
+  <style>
+    :root {
+      --primary: #3b82f6;
+      --primary-dark: #2563eb;
+      --background: #f8fafc;
+      --surface: #ffffff;
+      --text: #1e293b;
+      --text-secondary: #64748b;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --border: #e2e8f0;
+      --shadow: rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--background);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+      padding: 1rem;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+    }
+
+    .main-layout {
+      display: grid;
+      grid-template-columns: 1fr 350px;
+      gap: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      .main-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 6px var(--shadow);
+    }
+
+    .panel-title {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+
+    button {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: var(--primary-dark);
+    }
+
+    .btn-block {
+      width: 100%;
+    }
+
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .task-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .task-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px var(--shadow);
+    }
+
+    .task-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.5rem;
+    }
+
+    .task-title {
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    .task-completed .task-title {
+      text-decoration: line-through;
+      color: var(--text-secondary);
+    }
+
+    .task-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .btn-icon {
+      background: none;
+      color: var(--text-secondary);
+      padding: 0.25rem;
+      width: auto;
+      min-width: auto;
+    }
+
+    .btn-icon:hover {
+      color: var(--primary);
+      background: none;
+    }
+
+    .task-priority-high {
+      border-left: 4px solid var(--danger);
+    }
+
+    .task-priority-medium {
+      border-left: 4px solid var(--warning);
+    }
+
+    .task-priority-low {
+      border-left: 4px solid var(--success);
+    }
+
+    .task-meta {
+      display: flex;
+      gap: 1rem;
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-secondary);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+      box-shadow: 0 2px 4px var(--shadow);
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-top: 0.25rem;
+    }
+
+    .priority-badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .priority-high {
+      background-color: rgba(239, 68, 68, 0.1);
+      color: var(--danger);
+    }
+
+    .priority-medium {
+      background-color: rgba(245, 158, 11, 0.1);
+      color: var(--warning);
+    }
+
+    .priority-low {
+      background-color: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>⏰ Timebox</h1>
+      <p class="subtitle">简化版时间管理工具 - 纯前端应用，无服务器依赖</p>
+    </header>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-value" id="total-tasks">0</div>
+        <div class="stat-label">总任务</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="pending-tasks">0</div>
+        <div class="stat-label">待处理</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="completed-tasks">0</div>
+        <div class="stat-label">已完成</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="avg-time">0</div>
+        <div class="stat-label">平均时间(分)</div>
+      </div>
+    </div>
+
+    <div class="main-layout">
+      <div class="panel">
+        <h2 class="panel-title">📋 任务列表</h2>
+        <div id="task-list" class="task-list">
+          <!-- Tasks will be dynamically inserted here -->
+          <div class="empty-state" id="empty-state">
+            <p>暂无任务，添加一个新任务开始吧！</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel-title">➕ 添加新任务</h2>
+        <form id="task-form">
+          <div class="form-group">
+            <label for="task-title">任务标题 *</label>
+            <input type="text" id="task-title" placeholder="输入任务标题" required>
+          </div>
+
+          <div class="form-group">
+            <label for="task-description">描述</label>
+            <textarea id="task-description" placeholder="输入任务描述" rows="3"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="task-priority">优先级</label>
+            <select id="task-priority">
+              <option value="low">低</option>
+              <option value="medium" selected>中</option>
+              <option value="high">高</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="task-time">预估时间 (分钟)</label>
+            <input type="number" id="task-time" min="1" value="30">
+          </div>
+
+          <button type="submit" class="btn-block">添加任务</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 应用状态管理
+    let tasks = JSON.parse(localStorage.getItem('timebox-tasks')) || [];
+    
+    // DOM 元素引用
+    const taskForm = document.getElementById('task-form');
+    const taskList = document.getElementById('task-list');
+    const emptyState = document.getElementById('empty-state');
+    const totalTasksEl = document.getElementById('total-tasks');
+    const pendingTasksEl = document.getElementById('pending-tasks');
+    const completedTasksEl = document.getElementById('completed-tasks');
+    const avgTimeEl = document.getElementById('avg-time');
+    
+    // 初始化应用
+    function initApp() {
+      renderTasks();
+      updateStats();
+      setupEventListeners();
+    }
+    
+    // 设置事件监听器
+    function setupEventListeners() {
+      taskForm.addEventListener('submit', handleTaskSubmit);
+    }
+    
+    // 处理任务提交
+    function handleTaskSubmit(e) {
+      e.preventDefault();
+      
+      const title = document.getElementById('task-title').value;
+      const description = document.getElementById('task-description').value;
+      const priority = document.getElementById('task-priority').value;
+      const estimatedTime = parseInt(document.getElementById('task-time').value);
+      
+      const newTask = {
+        id: Date.now().toString(),
+        title,
+        description,
+        priority,
+        status: 'pending',
+        estimatedTime,
+        createdAt: new Date().toISOString()
+      };
+      
+      tasks.unshift(newTask);
+      saveTasks();
+      renderTasks();
+      updateStats();
+      
+      // 重置表单
+      taskForm.reset();
+      document.getElementById('task-time').value = 30;
+      document.getElementById('task-priority').value = 'medium';
+    }
+    
+    // 渲染任务列表
+    function renderTasks() {
+      if (tasks.length === 0) {
+        emptyState.style.display = 'block';
+        taskList.innerHTML = '';
+        return;
+      }
+      
+      emptyState.style.display = 'none';
+      
+      taskList.innerHTML = tasks.map(task => `
+        <div class="task-item task-${task.status} task-priority-${task.priority}" data-id="${task.id}">
+          <div class="task-header">
+            <div class="task-title">${task.title}</div>
+            <div class="task-actions">
+              <button class="btn-icon toggle-status-btn" title="${task.status === 'completed' ? '标记为未完成' : '标记为完成'}">
+                ${task.status === 'completed' ? '↺' : '✓'}
+              </button>
+              <button class="btn-icon delete-btn" title="删除任务">×</button>
+            </div>
+          </div>
+          ${task.description ? `<div class="task-desc">${task.description}</div>` : ''}
+          <div class="task-meta">
+            <span class="priority-badge priority-${task.priority}">${getPriorityLabel(task.priority)}</span>
+            <span>⏱️ ${task.estimatedTime} 分钟</span>
+            <span>📅 ${formatDate(task.createdAt)}</span>
+          </div>
+        </div>
+      `).join('');
+      
+      // 添加事件监听器到动态生成的按钮
+      document.querySelectorAll('.toggle-status-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const taskId = e.currentTarget.closest('.task-item').dataset.id;
+          toggleTaskStatus(taskId);
+        });
+      });
+      
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const taskId = e.currentTarget.closest('.task-item').dataset.id;
+          deleteTask(taskId);
+        });
+      });
+    }
+    
+    // 切换任务状态
+    function toggleTaskStatus(id) {
+      tasks = tasks.map(task => 
+        task.id === id 
+          ? { ...task, status: task.status === 'completed' ? 'pending' : 'completed' } 
+          : task
+      );
+      saveTasks();
+      renderTasks();
+      updateStats();
+    }
+    
+    // 删除任务
+    function deleteTask(id) {
+      if (confirm('确定要删除这个任务吗？')) {
+        tasks = tasks.filter(task => task.id !== id);
+        saveTasks();
+        renderTasks();
+        updateStats();
+      }
+    }
+    
+    // 保存任务到本地存储
+    function saveTasks() {
+      localStorage.setItem('timebox-tasks', JSON.stringify(tasks));
+    }
+    
+    // 更新统计信息
+    function updateStats() {
+      const total = tasks.length;
+      const completed = tasks.filter(t => t.status === 'completed').length;
+      const pending = total - completed;
+      const avgTime = total > 0 
+        ? Math.round(tasks.reduce((sum, task) => sum + task.estimatedTime, 0) / total) 
+        : 0;
+      
+      totalTasksEl.textContent = total;
+      pendingTasksEl.textContent = pending;
+      completedTasksEl.textContent = completed;
+      avgTimeEl.textContent = avgTime;
+    }
+    
+    // 获取优先级标签
+    function getPriorityLabel(priority) {
+      switch(priority) {
+        case 'high': return '高';
+        case 'medium': return '中';
+        case 'low': return '低';
+        default: return priority;
+      }
+    }
+    
+    // 格式化日期
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('zh-CN', {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+    
+    // 启动应用
+    document.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</body>
+</html>
